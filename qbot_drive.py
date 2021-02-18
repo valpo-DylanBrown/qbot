@@ -134,15 +134,15 @@ class PublishThread(threading.Thread):
         self.publisher.publish(twist)
 
 
-# def getKey(key_timeout):
-    # tty.setraw(sys.stdin.fileno())
-    # rlist, _, _ = select.select([sys.stdin], [], [], key_timeout)
-    # if rlist:
-        # key = sys.stdin.read(1)
-    # else:
-        # key = ''
-    # termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-    # return key
+def getKey(key_timeout):
+    tty.setraw(sys.stdin.fileno())
+    rlist, _, _ = select.select([sys.stdin], [], [], key_timeout)
+    if rlist:
+        key = sys.stdin.read(1)
+    else:
+        key = ''
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    return key
 
 
 # def vels(speed, turn):
@@ -191,7 +191,7 @@ if __name__=="__main__":
     #status = 0
     rospy.Subscriber('ch1_state', Float32, ch1_state_callback)
     rospy.Subscriber('ch2_state', Float32, ch2_state_callback)
-    
+    loop = 1
 
     try:
         pub_thread.wait_for_subscribers()
@@ -201,49 +201,45 @@ if __name__=="__main__":
         #print(vels(speed,turn))
 
         
-        while(1):
-            try:
-                # key = getKey(key_timeout)
-                x = ch2_movement
-                y = 0
-                z = 0
-                if(x == -1):
-                    th = x * ch1_movement
-                else:
-                    th = ch1_movement
-                # if key in moveBindings.keys():
-                    # x = moveBindings[key][0]
-                    # y = moveBindings[key][1]
-                    # z = moveBindings[key][2]
-                    # th = moveBindings[key][3]
-                #elif key in speedBindings.keys():
-                    #speed = speed * speedBindings[key][0]
-                    #turn = turn * speedBindings[key][1]
+        while True:
+            #key = getKey(key_timeout)
+            x = ch2_movement
+            y = 0
+            z = 0
+            if(x == -1):
+                th = x * ch1_movement
+            else:
+                th = ch1_movement
+            # if key in moveBindings.keys():
+                # x = moveBindings[key][0]
+                # y = moveBindings[key][1]
+                # z = moveBindings[key][2]
+                # th = moveBindings[key][3]
+            #elif key in speedBindings.keys():
+                #speed = speed * speedBindings[key][0]
+                #turn = turn * speedBindings[key][1]
 
-                    #print(vels(speed,turn))
-                    #if (status == 14):
-                        #print(msg)
-                    #status = (status + 1) % 15
-                # else:
-                    # # Skip updating cmd_vel if key timeout and robot already
-                    # # stopped.
-                    # if key == '' and x == 0 and y == 0 and z == 0 and th == 0:
-                        # continue
-                    # x = 0
-                    # y = 0
-                    # z = 0
-                    # th = 0
-                    # if (key == '\x03'):
-                        # break
-     
-                pub_thread.update(x, y, z, th, speed, turn)
-            except KeyboardInterrupt:
-                print("quit")
-                break
-                pub_thread.stop()
+                #print(vels(speed,turn))
+                #if (status == 14):
+                    #print(msg)
+                #status = (status + 1) % 15
+            # else:
+                # # Skip updating cmd_vel if key timeout and robot already
+                # # stopped.
+                # if key == '' and x == 0 and y == 0 and z == 0 and th == 0:
+                    # continue
+                # x = 0
+                # y = 0
+                # z = 0
+                # th = 0
+                # if (key == '\x03'):
+                    # break
+            pub_thread.update(x, y, z, th, speed, turn)
+    except KeyboardInterrupt:
+        print("User requested stop")
+        
     except Exception as e:
         print(e)
-
     finally:
         pub_thread.stop()
 
